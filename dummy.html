@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            box-sizing: border-box;
+        }
+        #dd{
+            display:flex;
+            flex-wrap:wrap;
+            gap:10px;
+            justify-content: space-evenly;
+        }
+        #dd li{
+            list-style-type: none;
+            width:200px;
+            border: 1px solid grey;
+            border-radius: 10px;
+            display:flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding:10px;
+        }
+    </style>
+</head>
+<body>
+    <div>
+        <button onclick="SortByPriceAsc()">SortByPriceAsc</button>
+        <button onclick="SortByPriceDsc()">SortByPriceDsc</button>
+        <button onclick="FilterByCategory()">FilterByCategory</button>
+    </div>
+    <div>
+        <h2 id="form-title">Add Product</h2>
+        <form id="product-form">
+          <input type="hidden" id="product-id" />
+          <label for="title">Title:</label>
+          <input type="text" id="title" required /><br />
+          <label for="thumbnail">Thumbnail URL:</label>
+          <input type="text" id="thumbnail" required /><br />
+          <label for="price">Price:</label>
+          <input type="number" id="price" required /><br />
+          <label for="category">Category:</label>
+          <input type="text" id="category" required /><br />
+          <button type="submit">Submit</button>
+        </form>
+      </div>
+    <h1 id="tot"></h1>
+    <ul id="dd"></ul>
+    
+    <script>
+       //https://dummyjson.com/products?limit=100
+
+       var Products = []
+
+       var API = async () => {
+        let res = await fetch("https://dummyjson.com/products?limit=100")
+        let data = await res.json()
+        Products = data.products 
+        genUI(Products)
+       }
+
+       var genUI = async (data) => {
+        let dd = document.getElementById('dd')
+        dd.innerHTML = ''
+        data.forEach((p,i) => {
+            let newLi = document.createElement('li')
+            newLi.innerHTML = p.title
+            let newImg = document.createElement('img')
+            newImg.src = p.thumbnail 
+            newImg.style.width = '100px'
+            newLi.appendChild(newImg)
+            let newH4 = document.createElement('h4')
+            newH4.innerHTML = p.price 
+            newLi.appendChild(newH4)
+            let delbtn = document.createElement('button')
+            delbtn.innerHTML = 'DEL'
+            delbtn.onclick = () => deleteProduct(i)
+            newLi.appendChild(delbtn)
+            dd.appendChild(newLi)
+            let editBtn = document.createElement('button');
+          editBtn.innerHTML = 'EDIT';
+          editBtn.onclick = () => editProduct(i);
+          newLi.appendChild(editBtn);
+          dd.appendChild(newLi);
+        })
+        document.getElementById('tot').innerHTML = `there are of total ${data.length} Products`
+       }
+
+       API()
+
+       function deleteProduct(i){
+        Products.splice(i,1)
+        genUI(Products)
+       }
+
+       function SortByPriceAsc(){
+        let res = [...Products].sort((a,b) => {
+            if(a.price > b.price){
+                return 1
+            }else{
+                return -1
+            }
+        })
+        genUI(res)
+       }
+
+       function SortByPriceDsc(){
+        let res = [...Products].sort((a,b) => {
+            if(a.price > b.price){
+                return -1
+            }else{
+                return 1
+            }
+        })
+        genUI(res)
+       }
+
+       function FilterByCategory(){
+        let res = [...Products].filter((p) => {
+            if(p.category === 'kitchen-accessories'){
+                return true
+            }else{
+                return false
+            }
+        })
+        genUI(res)
+       }
+       document.getElementById('product-form').addEventListener('submit', (e) => {
+        e.preventDefault();
+        const id = document.getElementById('product-id').value;
+        const title = document.getElementById('title').value;
+        const thumbnail = document.getElementById('thumbnail').value;
+        const price = document.getElementById('price').value;
+        const category = document.getElementById('category').value;
+
+        if (id) {
+          Products[id] = { ...Products[id], title, thumbnail, price, category };
+        } else {
+          Products.push({ title, thumbnail, price, category });
+        }
+        genUI(Products);
+        document.getElementById('product-form').reset();
+        document.getElementById('form-title').innerText = 'Add Product';
+        document.getElementById('product-id').value = '';
+      });
+
+      function editProduct(i) {
+        document.getElementById('form-title').innerText = 'Edit Product';
+        document.getElementById('product-id').value = i;
+        document.getElementById('title').value = Products[i].title;
+        document.getElementById('thumbnail').value = Products[i].thumbnail;
+        document.getElementById('price').value = Products[i].price;
+        document.getElementById('category').value = Products[i].category;
+      }
+    </script>
+</body>
+</html>
